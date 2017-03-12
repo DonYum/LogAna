@@ -10,7 +10,7 @@ def choices():
     bugtypes = BugType.query.order_by(BugType.timestamp.desc())
     choices = []
     choices += [(bt.id, bt.name) for bt in bugtypes if bt.id and bt.name]
-    # print(choices)
+    print(choices)
     return choices
 
 class SelectKeywordsForm(Form):
