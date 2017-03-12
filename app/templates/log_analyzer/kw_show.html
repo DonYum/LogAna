@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="https://rawgit.com/wenzhixin/bootstrap-table/master/src/bootstrap-table.css">
+</style>
+{% endblock %}
+
+{% block page_content %}
+
+<div class="row">
+	<div class="col-md-4">
+        <div class="page-header">
+            <h1>关键字管理</h1>
+        </div>
+	    {{ wtf.quick_form(kw_form, form_type="horizontal") }}
+	    {% if current_user.can(Permission.WRITE_ARTICLES) %}
+	    {% endif %}
+	</div>
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-5">
+        <div class="page-header">
+            <h1>ButType</h1>
+        </div>
+	    {{ wtf.quick_form(bugtype_form, form_type="horizontal") }}
+	    {% if current_user.can(Permission.WRITE_ARTICLES) %}
+	    {% endif %}
+	</div>
+</div>
+<br>
+<hr />
+
+<div class="row">
+    筛选：<input id="filterName1" value=""></input>
+<br />
+<br />
+<table id="keywords" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>关键字（正则）</th>
+            <th>描述</th>
+            <th>分类</th>
+            <th>是否用于测试</th>
+            <th>添加者</th>
+            <th>添加时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for post in kw_items %}
+        <tr>
+            <td>"{{ post.kw_regex }}"</td>
+            <td>{{ post.description }}</td>
+            <td>{{ post.bug_type.name }}</td>
+            <td>{% if post.test_flag %}是{% else %}否{% endif %}</td>
+            <td>{{ post.author.username }}</td>
+            <td>{{ moment(post.timestamp).format('YY-M-D, h:mm:ss') }}</td>
+            <td>
+                {% if current_user == post.author -%}
+                <a href="{{ url_for('log_analyzer.kw_show', kw_id=post.id) }}"><span class="label label-primary">Edit</span></a>
+                {%- elif current_user.is_administrator() %}
+                <a href="{{ url_for('log_analyzer.kw_show', kw_id=post.id) }}">
+                    <span class="label label-danger">Edit [Admin]</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('log_analyzer.del_kw', id=post.id) }}">
+                    <span class="label label-default">Delete</span>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<hr />
+
+<br>
+<div class="row">
+    筛选：<input id="filterName2" value=""></input>
+<br />
+<br />
+<table id="bugtype" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>BugType</th>
+            <th>描述</th>
+            <th>添加者</th>
+            <th>添加时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for post in bt_items %}
+        <tr>
+            <td>"{{ post.name }}"</td>
+            <td>{{ post.description }}</td>
+            <td>{{ post.author.username }}</td>
+            <td>{{ moment(post.timestamp).format('YY-M-D, h:mm:ss') }}</td>
+            <td>
+                {% if current_user == post.author -%}
+                <a href="{{ url_for('log_analyzer.kw_show', bt_id=post.id) }}"><span class="label label-primary">Edit</span></a>
+                {%- elif current_user.is_administrator() %}
+                <a href="{{ url_for('log_analyzer.kw_show', bt_id=post.id) }}">
+                    <span class="label label-danger">Edit [Admin]</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('log_analyzer.del_bt', id=post.id) }}">
+                    <span class="label label-default">Delete</span>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+
+{% block footer %}
+{{super()}}
+{% endblock %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+<!-- <script type='text/javascript' src="https://rawgit.com/wenzhixin/bootstrap-table/master/src/bootstrap-table.js"></script> -->
+<script>
+$(function() {
+  $('#filterName1').keyup(function(){
+    $("#keywords tbody tr").hide().filter(":contains('"+( $(this).val() )+"')").show();
+  });
+
+  $('#filterName2').keyup(function(){
+    $("#bugtype tbody tr").hide().filter(":contains('"+( $(this).val() )+"')").show();
+  });
+});
+</script>
+{% endblock %}

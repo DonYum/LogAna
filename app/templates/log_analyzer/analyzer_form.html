@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+{#
+<div class="page-header">
+    <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
+</div>
+#}
+<div class="row">
+	<div class="col-md-4">
+	    {{ wtf.quick_form(form) }}
+	    {% if current_user.can(Permission.WRITE_ARTICLES) %}
+	    {% endif %}
+	</div>
+</div>
+<div class="row">
+{% include 'log_analyzer/keyword_items.html' %}
+</div>
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, 'log_analyzer.edit_keyword') }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}

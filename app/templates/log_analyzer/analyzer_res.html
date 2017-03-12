@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>分析结果</h1>
+</div>
+<div class="row">
+	<p>Basic Info:</p>
+	<p>Basic Info of {{ url }}</p>
+</div>
+<hr />
+
+<div class="row">
+<br />
+<table id="logfile" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>log files:  <input type="checkbox" id="LogFiles" checked="1">隐藏/展开</input> </th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for log_file in log_files %}
+        <tr style="display: none">
+            <td><a href="{{ url_for('log_analyzer.downloads_file', filename=log_file[0]) }}">{{ log_file[1] }}</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<hr />
+
+<div class="row">
+    TODO: 添加根据关键字过滤log的方法。
+<br />
+<br />
+<table id="keywords" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>关键字（正则）</th>
+            <th>描述</th>
+            <th>是否用于测试</th>
+            <th>添加者</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for key in kw_format %}
+        <tr>
+            <td colspan="4" style="background-color: #ccc;">"{{ kw_format[key]['bt'].name }}"</td>
+        </tr>
+        {% for kw in kw_format[key]['kw'] %}
+        <tr>
+            <td>"{{ kw.kw_regex }}"</td>
+            <td>"{{ kw.description }}"</td>
+            <td>"{{ kw.test_flag }}"</td>
+            <td>"{{ kw.author.username }}"</td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<hr />
+
+<div class="row">
+	<div class="col-md-4">
+		筛选：<input id="filterName" value=""></input>
+	</div>
+</div>
+<br>
+
+<div class="row">
+<table id="example" class="table table-hover table-bordered" cellspacing="0" width="100%" style="table-layout:fixed">
+    <thead>
+        <tr>
+            <th width="150px">time</th>
+            <th width="100px">desc</th>
+            <th width="40px">tag</th>
+            <th>content</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for post in ana_res %}
+    	{% if post['tag']=='I' %}
+        <tr  class="active">
+    	{% elif post['tag']=='D' %}
+        <tr  class="success">
+    	{% elif post['tag']=='W' %}
+        <tr  class="warning">
+    	{% elif post['tag']=='E' %}
+        <tr  class="danger">
+    	{% endif %}
+            <td>{{ post['time'] | safe }}</td>
+            <td style="background-color:#ccc;">{{ post['desc'] }}</td>
+            <td>{{ post['tag'] }}</td>
+            <td>{{ post['cont'] | safe }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+<br />
+{% block footer %}
+{{super()}}
+{% endblock %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+<script>
+$(function() {
+  $('#filterName').keyup(function(){
+	$("table tbody tr").hide().filter(":contains('"+( $(this).val() )+"')").show();
+  });
+  $('#LogFiles').click(function(){
+  	if ($("#LogFiles:checked").val()) {
+		$("#logfile tbody tr").hide();
+	} else {
+		$("#logfile tbody tr").show();
+	}
+  });
+});
+</script>
+{% endblock %}
