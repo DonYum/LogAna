@@ -188,7 +188,7 @@ def del_ana(id):
 
 
 @log_analyzer.route('/analyzer_res/<int:id>/<int:all>', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def analyzer_res(id, all):
     ref_html = ''
     # kw_list = []
@@ -204,7 +204,8 @@ def analyzer_res(id, all):
     #         kw_list.append(kw.kw_regex)
 
     if all:
-        kw_list = [kw.id for kw in Keyword.query.order_by(Keyword.id.desc())]
+        kw_query = Keyword.query.order_by(Keyword.id.desc()).limit(6)
+        kw_list = [kw.id for kw in kw_query]
     else:
         kw_list = request.form.getlist("kw_list")
         if not kw_list:
