@@ -248,6 +248,7 @@ class Keyword(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     kw_regex = db.Column(db.String(128), unique=True, index=True)
     description = db.Column(db.String(128))
+    comment = db.Column(db.String(512))
     test_flag = db.Column(db.Boolean, default=False)
     color = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)

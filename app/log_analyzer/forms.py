@@ -1,31 +1,24 @@
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, HiddenField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, HiddenField, TextAreaField
 from wtforms.validators import Required, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError
 from flask_pagedown.fields import PageDownField
 from ..models import *
 from .. import db
 
-def choices():
-    bugtypes = BugType.query.order_by(BugType.timestamp.desc())
-    choices = []
-    choices += [(bt.id, bt.name) for bt in bugtypes if bt.id and bt.name]
-    print(choices)
-    return choices
-
 class SelectKeywordsForm(Form):
     bugID = HiddenField()
-    choices=choices()
-    bug_type = {}
-    bug_type = SelectField('BugType', choices=choices, coerce=int)
+    bug_type = SelectField('BugType', coerce=int)
     submit = SubmitField('Submit')
 
 class EditKeyForm(Form):
+    kw_ID = HiddenField()
     kw_regex = StringField('Keyword(Regex):', validators=[Required(), Length(0, 64)])
-    description = StringField('Description:', validators=[Length(0, 64)])
+    description = StringField('Description:', validators=[Length(0, 128)])
+    comment = StringField('Comment:', validators=[Length(0, 512)])
     # test_flag = StringField('For Test?(1/0)', validators=[Length(0, 64)])
-    bug_type = SelectField('BugType', choices=choices(), coerce=int)
-    test_flag = BooleanField('Just for test?')
+    bug_type = SelectField('BugType', coerce=int)
+    # test_flag = BooleanField('Just for test?')
     submit = SubmitField('Submit')
 
     # def validate_kw_regex(self, field):
@@ -34,6 +27,7 @@ class EditKeyForm(Form):
 
 
 class BugTypeForm(Form):
+    bt_ID = HiddenField()
     name = StringField('BugType:', validators=[Required(), Length(0, 64)])
     description = StringField('Description:', validators=[Length(0, 64)])
     submit = SubmitField('Submit')

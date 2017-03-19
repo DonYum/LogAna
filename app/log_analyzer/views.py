@@ -19,50 +19,84 @@ from ..processLogcat import processLogcat
 
 # # renjz: 
 
+def choices():
+    bugtypes = BugType.query.order_by(BugType.timestamp.desc())
+    choices = []
+    choices += [(bt.id, bt.name) for bt in bugtypes if bt.id and bt.name]
+    # print(choices)
+    return choices
+
 @log_analyzer.route('/kw_show', methods=['GET', 'POST'])
 @login_required
 def kw_show():
     kw_form = EditKeyForm()
     bugtype_form = BugTypeForm()
 
-    if kw_form.validate_on_submit():
+    kw_form.bug_type.choices=choices()
+
+    # kw_id_tmp = 0;
+    # update_kw_db_flag = 0
+
+    if kw_form.is_submitted() and kw_form.validate_on_submit():
         bt_item = BugType.query.get_or_404(kw_form.bug_type.data)
-        kw_item = Keyword.query.filter_by(kw_regex=kw_form.kw_regex.data).first()
+        kw_item = Keyword.query.filter_by(id=kw_form.kw_ID.data).first()
         if kw_item:
             kw_item.kw_regex=kw_form.kw_regex.data
             kw_item.description=kw_form.description.data
-            kw_item.test_flag=kw_form.test_flag.data
+            kw_item.comment=kw_form.comment.data
+            # kw_item.test_flag=kw_form.test_flag.data
             kw_item.bug_type=bt_item
+            flash("Update keyword("+kw_form.kw_regex.data+") success.")
         else:
             kw_item = Keyword(kw_regex=kw_form.kw_regex.data,
                     description=kw_form.description.data,
-                    test_flag=kw_form.test_flag.data,
+                    comment=kw_form.comment.data,
+                    # test_flag=kw_form.test_flag.data,
                     bug_type=bt_item,
                     author=current_user._get_current_object())
+            flash("Add keyword("+kw_form.kw_regex.data+") success.")
         db.session.add(kw_item)
+        # db.session.commit()
+
+        # update_kw_db_flag = 1
+        # kw_id_tmp = kw_item.id
+        # kw_form.process()
+        # print("kw_id_tmp=" + str(kw_id_tmp))
+        # print("update_kw_db_flag=" + str(update_kw_db_flag))
         return redirect(url_for('log_analyzer.kw_show'))
 
     if bugtype_form.validate_on_submit():
-        bt_item = BugType.query.filter_by(name=bugtype_form.name.data).first()
+        bt_item = BugType.query.filter_by(id=bugtype_form.bt_ID.data).first()
         if bt_item:
             bt_item.name=bugtype_form.name.data
             bt_item.description=bugtype_form.description.data
+            flash("Update BugType("+bugtype_form.name.data+") success.")
         else:
             bt_item = BugType(name=bugtype_form.name.data,
                         description=bugtype_form.description.data,
                         author=current_user._get_current_object())
+            flash("Add BugType("+bugtype_form.name.data+") success.")
         db.session.add(bt_item)
         return redirect(url_for('log_analyzer.kw_show'))
 
     kw_id = request.args.get('kw_id', 0, type=int)
     if kw_id:
         kw = Keyword.query.get_or_404(kw_id)
+        kw_form.bug_type.default = kw.bugtype_id
+        kw_form.process()       # flash SelectField choises & default.
+        kw_form.kw_ID.data = kw_id
         kw_form.kw_regex.data = kw.kw_regex
         kw_form.description.data = kw.description
+        kw_form.comment.data = kw.comment
+    # else:
+    #     kw_id = kw_id_tmp
+
+    print("kw_id="+str(kw_id))
 
     bt_id = request.args.get('bt_id', 0, type=int)
     if bt_id:
         bt = BugType.query.get_or_404(bt_id)
+        bugtype_form.bt_ID.data = bt_id
         bugtype_form.name.data = bt.name
         bugtype_form.description.data = bt.description
 
@@ -70,7 +104,7 @@ def kw_show():
     bt_items = BugType.query.order_by(BugType.timestamp.desc())
     # posts = pagination.items
     return render_template('log_analyzer/kw_show.html', kw_form=kw_form, bugtype_form=bugtype_form, 
-            kw_items=kw_items, bt_items=bt_items)
+            kw_items=kw_items, bt_items=bt_items, kw_id=kw_id, bt_id=bt_id)
 
 
 @log_analyzer.route('/del_bt/<int:id>', methods=['GET', 'POST'])
@@ -152,23 +186,39 @@ def del_ana(id):
     return redirect(url_for('log_analyzer.analyzer_show'))
 
 
-@log_analyzer.route('/analyzer_res/<int:id>', methods=['GET', 'POST'])
+@log_analyzer.route('/analyzer_res/<int:id>/<int:all>', methods=['GET', 'POST'])
 @login_required
-def analyzer_res(id):
+def analyzer_res(id, all):
     ref_html = ''
-    kw_list = []
+    # kw_list = []
 
     sk_form = SelectKeywordsForm()
 
     ana = LogAnalyzer.query.get_or_404(id)
     log_dir = get_dst_dir_from_url(ana.ftp_url)
-    log_status_file = os.path.join(log_dir, 'log_join', 'files')
-    if os.path.exists(log_status_file):
-        kwywords = Keyword.query.order_by(Keyword.timestamp.desc())
-        for kw in kwywords:
-            kw_list.append(kw.kw_regex)
+    # log_status_file = os.path.join(log_dir, 'log_join', 'files')
+    # if os.path.exists(log_status_file):
+    #     kwywords = Keyword.query.order_by(Keyword.timestamp.desc())
+    #     for kw in kwywords:
+    #         kw_list.append(kw.kw_regex)
 
-    ana_res = processLogcat(src_file=os.path.join(log_dir, 'log_join', 'logcat.log.all')).process_file()
+    if all:
+        kw_list = [kw.id for kw in Keyword.query.order_by(Keyword.id.desc())]
+    else:
+        kw_list = request.form.getlist("kw_list")
+        if not kw_list:
+            kw_list = [Keyword.query.order_by(Keyword.id.desc()).first().id]
+    print("RJZ\n")
+    print(kw_list)
+    print("kw_list")
+    # kw_res = db.session.query(Keyword).filter(Keyword.id.in_([2]))
+    kw_res = db.session.query(Keyword).filter(Keyword.id.in_(kw_list))
+    kw_row = [row.kw_regex for row in kw_res]
+    print(kw_row)
+
+    kw_list = [int(kw_id) for kw_id in kw_list]
+
+    ana_res = processLogcat(src_file=os.path.join(log_dir, 'log_join', 'logcat.log.all'), kw_res=kw_res).process_file()
 
     # keywords list for log process.
     kw_format = {}
@@ -177,7 +227,7 @@ def analyzer_res(id):
         if kw.bugtype_id not in kw_format:
             kw_format[kw.bugtype_id] = {"bt": kw.bug_type, "kw": []}
         kw_format[kw.bugtype_id]["kw"].append(kw)
-    print(kw_format)
+    # print(kw_format)
 
     # get log file list
     log_files = []
@@ -191,7 +241,7 @@ def analyzer_res(id):
             log_files.append((log_path, log_path_dis))
 
     return render_template('log_analyzer/analyzer_res.html', sk_form=sk_form, url=ana.ftp_url,
-            ana_res=ana_res, kw_format=kw_format, log_files=log_files)
+            ana_res=ana_res, kw_format=kw_format, log_files=log_files, id=id, kw_list=kw_list)
 
 
 @log_analyzer.route('/downloads/<path:filename>', methods=['GET', 'POST'])

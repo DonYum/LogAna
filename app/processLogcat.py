@@ -41,30 +41,22 @@ def format(fg=None, bg=None, bright=False, bold=False, dim=False, reset=False):
     return "\033[%sm" % (";".join(codes))
 
 class processLogcat(object):
-    def __init__(self, src_file='./logcat_join/logcat.log.all', kw_list=["CMD_AUTO", "EVENT-DIS", "NetUti"]):
+    def __init__(self, src_file='./logcat_join/logcat.log.all', kw_res=None):
         self.debug = 1      # if 1: not del dl dir.
         self.src_file = src_file
-        self.kw_reg_dict = {}
+        if not kw_res:
+            return False
+        self.kw_res = kw_res
 
         self.regex_str = self.struct_regex(0)
-        # if not self.kw_list:
             
         # return self.process_file(src_file)
-        
 
     def __del__(self):
         pass
         
     def struct_regex(self, match_flag):
-        strs = []
-
-        kwywords = Keyword.query.order_by(Keyword.timestamp.desc())
-        if kwywords:
-            for kw in kwywords:
-                strs.append(kw.kw_regex)
-                self.kw_reg_dict[kw.kw_regex] = kw.description
-        if not strs:
-            strs = ["CMD_AUTO", "EVENT-DIS", "NetUti"]
+        strs = [row.kw_regex for row in self.kw_res]
         
         if match_flag:
             regex_str = ".*" + "|.*".join(strs)
@@ -84,9 +76,18 @@ class processLogcat(object):
         res = pat.search(content)
         
         if res and res.groups()[0]:
-            print("res_l is:", res.groups()[0])
-            desc = self.kw_reg_dict[res.groups()[0]]
-            print("desc is:", )
+            print("res_g is:", res.groups())
+            dst_reg_arr = list(res.groups())[1:]
+            dst_reg_idx = 0
+            for dst_reg in dst_reg_arr:
+                if not dst_reg==None:
+                    break
+                dst_reg_idx += 1
+            # print("dst_reg_idx="+str(dst_reg_idx))
+            print("description="+str(self.kw_res[dst_reg_idx].description))
+
+            desc = self.kw_res[dst_reg_idx].description
+            
             res_l = list(res.groups())[1:]
             res_s = res.group(0)
             print("res_s is:", res_s)

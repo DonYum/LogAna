@@ -43,7 +43,7 @@
             <td>{{ log_status[post.id]["status"] }}</td>
             <td>
                 {% if log_status[post.id]["status"] %}
-                <a href="{{ url_for('log_analyzer.analyzer_res', id=post.id) }}"><span class="label label-primary">查看</span></a>
+                <a href="{{ url_for('log_analyzer.analyzer_res', id=post.id, all=1) }}"><span class="label label-primary">查看</span></a>
                 {% else %}
                 <!-- <span class="label label-default" id="poll" value="{{ log_status[post.id]['log_dir'] }}">下载进度</span> -->
                 {% endif %}

@@ -13,15 +13,15 @@
 {% block page_content %}
 
 <div class="row">
-	<div class="col-md-4">
+	<div class="col-md-5">
         <div class="page-header">
-            <h1>关键字管理</h1>
+            <h1 title="123wjdsiajdoasjdsijaoisjdoisajdasoidjasoijdaisdjasidjaso">关键字管理</h1>
         </div>
 	    {{ wtf.quick_form(kw_form, form_type="horizontal") }}
 	    {% if current_user.can(Permission.WRITE_ARTICLES) %}
 	    {% endif %}
 	</div>
-    <div class="col-md-2">
+    <div class="col-md-1">
     </div>
     <div class="col-md-5">
         <div class="page-header">
@@ -39,13 +39,13 @@
     筛选：<input id="filterName1" value=""></input>
 <br />
 <br />
-<table id="keywords" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+<table id="keywords" class="table {% if kw_id==0 %} table-striped {% endif %} table-hover table-bordered" cellspacing="0" width="100%">
     <thead>
         <tr>
             <th>关键字（正则）</th>
             <th>描述</th>
+            <th>说明</th>
             <th>分类</th>
-            <th>是否用于测试</th>
             <th>添加者</th>
             <th>添加时间</th>
             <th>操作</th>
@@ -53,11 +53,11 @@
     </thead>
     <tbody>
     {% for post in kw_items %}
-        <tr>
+        <tr {% if kw_id==post.id %} class="danger" {% endif %}>
             <td>"{{ post.kw_regex }}"</td>
             <td>{{ post.description }}</td>
+            <td>{{ post.comment }}</td>
             <td>{{ post.bug_type.name }}</td>
-            <td>{% if post.test_flag %}是{% else %}否{% endif %}</td>
             <td>{{ post.author.username }}</td>
             <td>{{ moment(post.timestamp).format('YY-M-D, h:mm:ss') }}</td>
             <td>
@@ -84,7 +84,7 @@
     筛选：<input id="filterName2" value=""></input>
 <br />
 <br />
-<table id="bugtype" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
+<table id="bugtype" class="table {% if bt_id==0 %} table-striped {% endif %} table-hover table-bordered" cellspacing="0" width="100%">
     <thead>
         <tr>
             <th>BugType</th>
@@ -96,8 +96,8 @@
     </thead>
     <tbody>
     {% for post in bt_items %}
-        <tr>
-            <td>"{{ post.name }}"</td>
+        <tr {% if bt_id==post.id %} class="danger" {% endif %}>
+            <td>{{ post.name }}</td>
             <td>{{ post.description }}</td>
             <td>{{ post.author.username }}</td>
             <td>{{ moment(post.timestamp).format('YY-M-D, h:mm:ss') }}</td>
