@@ -47,6 +47,8 @@ class processLogcat(object):
         if not kw_res:
             return False
         self.kw_res = kw_res
+        self.RSSI_array = [[], []]
+        self.ping_array = [[], []]
 
         self.regex_str = self.struct_regex(0)
             
@@ -66,13 +68,32 @@ class processLogcat(object):
         # return re.compile(regex_str)
         print("reg_str: ", regex_str)
         return regex_str
-        
-    def process_content(self, content):
-        print(content)
-        regex_str = self.regex_str
 
-        # regex_str = "^(.*\s+.*)\s+([0-9]+)\s+([0-9]+)\s+([A-Z])\s+(.*)$"
-        pat = re.compile(regex_str)
+    def get_RSSI_array(self):
+        return self.RSSI_array
+
+    def get_ping_array(self):
+        return self.ping_array
+        
+    def process_content(self, time, content):
+        print("src_str=" + content)
+
+        # Get RSSI value here!
+        # RSSI_reg_str = "WifiConfigStore.*RSSI=(-[0-9]*)"
+        pat1 = re.compile("(WifiConfigStore.*RSSI=(-[0-9]*)|ConnectivitySer.*data=([0-9]*)ms)")
+        res = pat1.search(content)
+        
+        if res and res.groups()[0]:
+            print("RSSI|ping res is:", res.groups())
+            if res.groups()[1]:
+                self.RSSI_array[0].append(time)
+                self.RSSI_array[1].append(int(res.groups()[1]))
+            elif res.groups()[2]:
+                self.ping_array[0].append(time)
+                self.ping_array[1].append(int(res.groups()[2]))
+
+        # Parse normal keywords!
+        pat = re.compile(self.regex_str)
         res = pat.search(content)
         
         if res and res.groups()[0]:
@@ -87,11 +108,12 @@ class processLogcat(object):
             print("description="+str(self.kw_res[dst_reg_idx].description))
 
             desc = self.kw_res[dst_reg_idx].description
-            
+
             res_l = list(res.groups())[1:]
             res_s = res.group(0)
-            print("res_s is:", res_s)
-            res_idx = res_l.index(res_s)
+            print("res_s is:"+res_s+".")
+            print("content is:"+content+".")
+            # res_idx = res_l.index(res_s)
             # print("res_idx is:", res_idx)
             str_to = '<span class="text-danger" style="background: #DA81F5;">' + res_s + '</span>'
             pat = re.compile(res_s)
@@ -100,8 +122,9 @@ class processLogcat(object):
             return (desc, dst_str)
         else:
             """ 匹配失败 """
-            print("search fail!")
-            return (None, content)
+            # print("search fail!")
+
+            return (None, None)
             
         
     def process_line(self, src_str):
@@ -111,7 +134,7 @@ class processLogcat(object):
         res is: ('01-29 21:46:22.173 ', '1984', '2692', 'E', 'WifiStateMachine: CMD_AUTO_CONNECT sup state ScanState my state DisconnectedState nid=0 roam=3')
         """
         
-        print(src_str)
+        # print("src_str="+src_str)
         # regex_str = self.struct_regex(0)
         regex_str = "^(.*\s+.*)\s+([0-9]+)\s+([0-9]+)\s+([A-Z])\s+(.*)$"
         pat = re.compile(regex_str)
@@ -119,14 +142,18 @@ class processLogcat(object):
         if res:
             """ logcat格式处理 """
             time, pid, uid, tag, content = res.groups()
-            print("res_l is:", res.groups())
+            # print("res_l is:", res.groups())
             
-            (desc, content) = self.process_content(content)
+            (desc, content) = self.process_content(time, content)
+            if not desc:
+                return None
+
             res_str = {'time':time, 'pid':pid, 'uid':uid, 'tag':tag, 'desc':desc, 'cont':content}
         else:
             """ 非logcat格式处理 """
             print("no match!")
             res_str = {'time':None, 'pid':None, 'uid':None, 'tag':None, 'desc':None, 'cont':src_str}
+
         return res_str
             
         
@@ -142,21 +169,26 @@ class processLogcat(object):
         print("process file:", file)
         results = []
         
-        regex_str1 = self.struct_regex(1)
+        kw_reg = self.struct_regex(1)
+        ping_reg = ".*ConnectivitySer.*data=[0-9]*|"
+        RSSI_reg = ".*WifiConfigStore.*RSSI=-[0-9]*|"
+        regex_str = ping_reg + RSSI_reg + kw_reg
+        print("regex_str=" + regex_str)
         
         with open(file, 'r') as f:
             # resul = list()
             for line in f:
                 # 使用search会降低匹配速度，所以这里借用match做了一个trick。
                 # 速度可以提高4倍（5.6s->1.1s）
-                pat = re.compile(regex_str1)    # re预编译，提高匹配速度。
+                pat = re.compile(regex_str)    # re预编译，提高匹配速度。
                 res = pat.match(line)
                 # res = pat.search(line)
                 
                 # 匹配到之后做专门处理
                 if res:
                     res_str = self.process_line(line)
-                    results.append(res_str)
+                    if res_str:
+                        results.append(res_str)
         return results
                     
 

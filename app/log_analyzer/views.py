@@ -16,6 +16,7 @@ from .. import celery
 from config import Config
 from ..common_func import *
 from ..processLogcat import processLogcat
+import math
 
 # # renjz: 
 
@@ -218,7 +219,12 @@ def analyzer_res(id, all):
 
     kw_list = [int(kw_id) for kw_id in kw_list]
 
-    ana_res = processLogcat(src_file=os.path.join(log_dir, 'log_join', 'logcat.log.all'), kw_res=kw_res).process_file()
+    ana_process = processLogcat(src_file=os.path.join(log_dir, 'log_join', 'logcat.log.all'), kw_res=kw_res)
+    ana_res = ana_process.process_file()
+    RSSI_arr = ana_process.get_RSSI_array()
+    ping_arr = ana_process.get_ping_array()
+    # print(RSSI_arr)
+    # print(ping_arr)
 
     # keywords list for log process.
     kw_format = {}
@@ -237,10 +243,11 @@ def analyzer_res(id, all):
             log_abs_path = os.path.join(path, file)
             log_path = log_abs_path[len(Config.UPLOAD_FOLDER)+1: ]
             log_path_dis = log_abs_path[len(log_dir): ]
+            file_size = convert_size(os.path.getsize(log_abs_path))
             # print('RJZ: file=' + log_path)
-            log_files.append((log_path, log_path_dis))
+            log_files.append((log_path, log_path_dis, file_size))
 
-    return render_template('log_analyzer/analyzer_res.html', url=ana.ftp_url,
+    return render_template('log_analyzer/analyzer_res.html', url=ana.ftp_url, RSSI_arr=RSSI_arr, ping_arr=ping_arr,
             ana_res=ana_res, kw_format=kw_format, log_files=log_files, id=id, kw_list=kw_list)
 
 

@@ -15,20 +15,27 @@
 </div>
 </div>
 <hr />
+<div id="RSSI_chart" class="row" style="height: 400px"></div>
+<div id="ping_chart" class="row" style="height: 400px"></div>
 
 <div class="row">
-<div class="col-md-8">
+<div class="col-md-5">
 <br />
 <table id="logfile" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <th>log files:  <input type="checkbox" id="LogFilesToggle" checked="1">隐藏/展开</input> </th>
+            <th colspan="2">log files:  <input type="checkbox" id="LogFilesToggle" checked="1">隐藏/展开</input> </th>
         </tr>
     </thead>
     <tbody>
+    <tr style="display: none">
+        <td>File</td>
+        <td>Size</td>
+    </tr>
     {% for log_file in log_files %}
         <tr style="display: none">
             <td><a href="{{ url_for('log_analyzer.downloads_file', filename=log_file[0]) }}">{{ log_file[1] }}</a></td>
+            <td>{{ log_file[2] }}</td>
         </tr>
     {% endfor %}
     </tbody>
@@ -38,7 +45,7 @@
 <hr />
 
 <div class="row">
-<div class="col-md-6">
+<div class="col-md-9">
     TODO: 添加根据关键字过滤log的方法。> {{ kw_list }}
 <br />
 <br />
@@ -123,6 +130,7 @@
 {% block scripts %}
 {{ super() }}
 {{ pagedown.include_pagedown() }}
+<script type='text/javascript' src="{{ url_for('static', filename='echarts.min.js') }}"></script>
 <script>
 $(function() {
     // for log files table.
@@ -162,5 +170,69 @@ $(function() {
         // console.info('.kw_'+checkALL_id+' td input:checked');
     });
 });
+</script>
+
+<script>
+// 基于准备好的dom，初始化echarts实例
+var myChart = echarts.init(document.getElementById('RSSI_chart'));
+
+// 指定图表的配置项和数据
+var option = {
+    title: {
+        text: 'WIFI信号强度状态',
+        x: 'center'
+    },
+    tooltip: {},
+    legend: {
+        data:['RSSI-Time']
+    },
+    xAxis: {
+        name: 'Time',
+        data: {{ RSSI_arr[0] | safe }}
+    },
+    yAxis: {
+        name: 'RSSI(dBm)'
+    },
+    series: [{
+        name: 'RSSI',
+        type: 'line',
+        data: {{ RSSI_arr[1] }}
+    }]
+};
+
+// 使用刚指定的配置项和数据显示图表。
+myChart.setOption(option);
+</script>
+
+<script>
+// 基于准备好的dom，初始化echarts实例
+var myChart = echarts.init(document.getElementById('ping_chart'));
+
+// 指定图表的配置项和数据
+var option = {
+    title: {
+        text: 'ping时延状态',
+        x: 'center'
+    },
+    tooltip: {},
+    legend: {
+        data:['ping时延-Time']
+    },
+    xAxis: {
+        name: 'Time',
+        data: {{ ping_arr[0] | safe }}
+    },
+    yAxis: {
+        name: 'ping时延(ms)'
+    },
+    series: [{
+        name: 'RSSI',
+        type: 'line',
+        data: {{ ping_arr[1] }}
+    }]
+};
+
+// 使用刚指定的配置项和数据显示图表。
+myChart.setOption(option);
 </script>
 {% endblock %}
