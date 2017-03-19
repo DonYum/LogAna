@@ -192,7 +192,7 @@ def analyzer_res(id, all):
     ref_html = ''
     # kw_list = []
 
-    sk_form = SelectKeywordsForm()
+    # sk_form = SelectKeywordsForm()
 
     ana = LogAnalyzer.query.get_or_404(id)
     log_dir = get_dst_dir_from_url(ana.ftp_url)
@@ -240,7 +240,7 @@ def analyzer_res(id, all):
             # print('RJZ: file=' + log_path)
             log_files.append((log_path, log_path_dis))
 
-    return render_template('log_analyzer/analyzer_res.html', sk_form=sk_form, url=ana.ftp_url,
+    return render_template('log_analyzer/analyzer_res.html', url=ana.ftp_url,
             ana_res=ana_res, kw_format=kw_format, log_files=log_files, id=id, kw_list=kw_list)
 
 

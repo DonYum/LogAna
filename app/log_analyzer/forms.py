@@ -6,10 +6,10 @@ from flask_pagedown.fields import PageDownField
 from ..models import *
 from .. import db
 
-class SelectKeywordsForm(Form):
-    bugID = HiddenField()
-    bug_type = SelectField('BugType', coerce=int)
-    submit = SubmitField('Submit')
+# class SelectKeywordsForm(Form):
+#     bugID = HiddenField()
+#     bug_type = SelectField('BugType', coerce=int)
+#     submit = SubmitField('Submit')
 
 class EditKeyForm(Form):
     kw_ID = HiddenField()
