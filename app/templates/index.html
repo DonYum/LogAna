@@ -18,6 +18,190 @@
 <div class="pagination">
     {{ macros.pagination_widget(pagination, '.index') }}
 </div>
+
+<div id="app">
+    <i-button>Default</i-button>
+    <i-button type="primary">Primary</i-button>
+    <i-button type="ghost">Ghost</i-button>
+    <i-button type="dashed">Dashed</i-button>
+    <i-button type="text">Text</i-button>
+    <br><br>
+    <i-button type="info">信息按钮</i-button>
+    <i-button type="success">成功按钮</i-button>
+    <i-button type="warning">警告按钮</i-button>
+    <i-button type="error">123</i-button>
+    <br><br>
+    <Icon type="checkmark" size=100 color="red"></Icon>
+    <Icon type="plus-circled"></Icon>
+    <br>
+    <p>[[ message ]]</p>
+</div>
+<div id="button" v-show='true'>
+<template>
+    <Button type="primary" @click="modal1 = true">显示对话框</Button>
+    <Modal
+        v-model="modal1"
+        title="普通的Modal对话框标题"
+        @on-ok="ok"
+        @on-cancel="cancel">
+        <p>对话框内容</p>
+        <p>对话框内容</p>
+        <p>对话框内容</p>
+    </Modal>
+</template>
+</div>
+
+<div id="signup" class="sign-up">
+        <i-form :model="formInline"
+                :rules="rulerInline"
+                :label-width="100">
+            <Form-item>
+                <span class="title"><i class="fa fa-envelope-o fa-fw"></i> 邮箱注册</span>
+            </Form-item>
+            <Form-item label="填写常用邮箱"
+                       prop="email">
+                <i-input :value.sync="formInline.email"
+                         placeholder="example@example.com">
+                </i-input>
+            </Form-item>
+    
+            <Form-item>
+                <i-button @click="getCode()"
+                          :type="hasSendCode?'success':'primary'"
+                          :disabled="hasSendCode">[[hasSendCode?'验证码已经发送':'发送验证码']]
+                </i-button>
+            </Form-item>
+    
+            <Form-item label="验证码"
+                       prop="vertifyCode">
+                <i-input :value.sync="formInline.vertifyCode"
+                         placeholder="请输入">
+    
+                </i-input>
+            </Form-item>
+    
+            <Form-item label="姓名"
+                       prop="name">
+                <i-input :value.sync="formInline.name"
+                         placeholder="请输入">
+    
+                </i-input>
+            </Form-item>
+    
+            <Form-item label="填写密码"
+                       type="password"
+                       prop="password">
+                <i-input :value.sync="formInline.password"
+                         placeholder="请输入">
+                </i-input>
+            </Form-item>
+    
+            <Form-item label="重复密码"
+                       type="password"
+                       prop="confirmPassword">
+                <i-input :value.sync="formInline.confirmPassword"
+                         placeholder="请输入">
+                </i-input>
+            </Form-item>
+            <Form-item>
+                <i-button type="primary"
+                          @click="signUp()">注册</i-button>
+            </Form-item>
+        </i-form>
+    </div>
+
+<script>
+	Vue.config.devtools = true
+	Vue.prototype.$http = axios
+
+    new Vue({
+        el: '#signup',
+        delimiters: ['[[', ']]'],
+data() {
+        const validatePassCheck = (rule, value, callback) => {
+            if (value === '') {
+                callback(new Error('请确认密码'));
+            } else if (value !== this.formInline.password) {
+                callback(new Error('两次密码不一致!'));
+            } else {
+                callback();
+            }
+        }
+        return {
+            hasSendCode: false,
+            formInline: {
+                name: "",
+                email: "55555@qq.com",
+                vertifyCode: "",
+                password: "lllllll",
+                confirmPassword: 'lllllll'
+            },
+            rulerInline: {
+                email: [
+                    { required: true, message: '请填写邮箱', trigger: 'blur' }
+                ],
+                name: [
+                    { required: true, message: "请填写姓名", trigger: 'blur' }
+                ],
+                vertifyCode: [
+                    { required: true, message: '请填写邮箱验证码', trigger: 'blur' },
+                ],
+                password: [
+                    { required: true, message: '请填写密码', trigger: 'blur' },
+                ],
+                confirmPassword: [
+                    { required: true, validator: validatePassCheck, trigger: 'blur' }
+                ]
+            }
+
+        };
+    },
+});
+
+
+    new Vue({
+        el: '#app',
+        delimiters: ['[[', ']]'],
+		data: {
+            message: "Hello 123."
+		},
+	    mounted: function() {
+	        this.getCustomers();
+	        console.log("123")
+	    },
+        methods: {
+            getCustomers: function() {
+            	this.$http.get("/api/test")
+                .then((response) => {
+                    // this.$set(message, response.data);
+                    this.message = response.data.data
+                    console.log(response.data)
+	        		console.log("423")
+                })
+                .catch(function(response) {
+                    console.log(response)
+	        		console.log("323")
+             });
+        	}
+        }
+    });
+
+    new Vue ({
+    	el: "#button",
+        data: {
+            modal1: false
+        },
+        methods: {
+            ok () {
+                this.$Message.info('点击了确定');
+            },
+            cancel () {
+                this.$Message.info('点击了取消');
+            }
+        }
+    });
+</script>
+
 {% endif %}
 {% endblock %}
 

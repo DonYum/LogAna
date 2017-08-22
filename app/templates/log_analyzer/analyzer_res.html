@@ -15,6 +15,7 @@
 </div>
 </div>
 <hr />
+
 <div id="RSSI_chart" class="row" style="height: 400px"></div>
 <div id="ping_chart" class="row" style="height: 400px"></div>
 
@@ -156,8 +157,9 @@ $(function() {
         // console.info(tr_class.substring(3)+", check_id="+checkbox_id);
         $checkAll = $('#'+tr_class.substring(3)+' td input');
         // console.info($checkAll.prop('class'));
-        $checkAll.prop('checked', $("#"+checkbox_id+":checked").length ? true : false);
+        $checkAll.prop('checked', $("#"+checkbox_id+":not(:checked)").length ? false : true);
         // console.info($("#"+checkbox_id+":checked").length);
+        // console.info($("#"+checkbox_id+":not(:checked)").length);
     });
 });
 

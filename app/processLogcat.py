@@ -51,19 +51,19 @@ class processLogcat(object):
         self.ping_array = [[], []]
 
         self.regex_str = self.struct_regex(0)
-            
+
         # return self.process_file(src_file)
 
     def __del__(self):
         pass
-        
+
     def struct_regex(self, match_flag):
         strs = [row.kw_regex for row in self.kw_res]
-        
+
         if match_flag:
             regex_str = ".*" + "|.*".join(strs)
             # regex_str = "((.*" + ")|(.*".join(strs) + "))"
-        else: 
+        else:
             regex_str = "((" + ")|(".join(strs) + "))"
         # return re.compile(regex_str)
         print("reg_str: ", regex_str)
@@ -74,28 +74,28 @@ class processLogcat(object):
 
     def get_ping_array(self):
         return self.ping_array
-        
+
     def process_content(self, time, content):
         print("src_str=" + content)
 
         # Get RSSI value here!
         # RSSI_reg_str = "WifiConfigStore.*RSSI=(-[0-9]*)"
-        pat1 = re.compile("(WifiConfigStore.*RSSI=(-[0-9]*)|ConnectivitySer.*data=([0-9]*)ms)")
+        pat1 = re.compile("(WifiConfigStore.*RSSI=(-[0-9]*)|ConnectivitySer.*(data|pingDelta)=([0-9]*)ms)")
         res = pat1.search(content)
-        
+
         if res and res.groups()[0]:
             print("RSSI|ping res is:", res.groups())
             if res.groups()[1]:
                 self.RSSI_array[0].append(time)
                 self.RSSI_array[1].append(int(res.groups()[1]))
-            elif res.groups()[2]:
+            elif res.groups()[3]:
                 self.ping_array[0].append(time)
-                self.ping_array[1].append(int(res.groups()[2]))
+                self.ping_array[1].append(int(res.groups()[3]))
 
         # Parse normal keywords!
         pat = re.compile(self.regex_str)
         res = pat.search(content)
-        
+
         if res and res.groups()[0]:
             print("res_g is:", res.groups())
             dst_reg_arr = list(res.groups())[1:]
@@ -125,15 +125,15 @@ class processLogcat(object):
             # print("search fail!")
 
             return (None, None)
-            
-        
+
+
     def process_line(self, src_str):
         """
         grep keywords
         01-29 21:46:22.173  1984  2692 E WifiStateMachine: CMD_AUTO_CONNECT sup state ScanState my state DisconnectedState nid=0 roam=3
         res is: ('01-29 21:46:22.173 ', '1984', '2692', 'E', 'WifiStateMachine: CMD_AUTO_CONNECT sup state ScanState my state DisconnectedState nid=0 roam=3')
         """
-        
+
         # print("src_str="+src_str)
         # regex_str = self.struct_regex(0)
         regex_str = "^(.*\s+.*)\s+([0-9]+)\s+([0-9]+)\s+([A-Z])\s+(.*)$"
@@ -143,7 +143,7 @@ class processLogcat(object):
             """ logcat格式处理 """
             time, pid, uid, tag, content = res.groups()
             # print("res_l is:", res.groups())
-            
+
             (desc, content) = self.process_content(time, content)
             if not desc:
                 return None
@@ -155,26 +155,26 @@ class processLogcat(object):
             res_str = {'time':None, 'pid':None, 'uid':None, 'tag':None, 'desc':None, 'cont':src_str}
 
         return res_str
-            
-        
+
+
     def grep_logcat(self):
         pass
-        
+
     def get_basic_info(self):
         pass
-        
-      
+
+
     def process_file(self):
         file = self.src_file
         print("process file:", file)
         results = []
-        
+
         kw_reg = self.struct_regex(1)
-        ping_reg = ".*ConnectivitySer.*data=[0-9]*|"
+        ping_reg = ".*ConnectivitySer.*(data|pingDelta)=[0-9]*|"
         RSSI_reg = ".*WifiConfigStore.*RSSI=-[0-9]*|"
         regex_str = ping_reg + RSSI_reg + kw_reg
         print("regex_str=" + regex_str)
-        
+
         with open(file, 'r') as f:
             # resul = list()
             for line in f:
@@ -183,14 +183,14 @@ class processLogcat(object):
                 pat = re.compile(regex_str)    # re预编译，提高匹配速度。
                 res = pat.match(line)
                 # res = pat.search(line)
-                
+
                 # 匹配到之后做专门处理
                 if res:
                     res_str = self.process_line(line)
                     if res_str:
                         results.append(res_str)
         return results
-                    
+
 
         """
     def process_file(self, file):
@@ -204,7 +204,7 @@ class processLogcat(object):
                 # 所以需要在这里做exception处理。
                 #   使用这种方式可以免去在join过程中去做，在join过程做编码转换速度太慢。
                 try:
-                    new_content = str(line, encoding = "UTF8") 
+                    new_content = str(line, encoding = "UTF8")
                 except UnicodeDecodeError:
                     result = chardet.detect(line)
                     coding = result.get('encoding')
@@ -213,11 +213,11 @@ class processLogcat(object):
                         new_content = line.decode('windows-1252').encode('UTF8')
                     else:
                        new_content = line
-                    new_content = str(new_content, encoding = "UTF8") 
+                    new_content = str(new_content, encoding = "UTF8")
                 else:
                     new_content = line
                     new_content = str(new_content, encoding = "UTF8")
-                    
+
                 new_content = new_content.strip()
                 if not len(new_content):
                     continue
@@ -226,7 +226,7 @@ class processLogcat(object):
             # print(result)
 
             """
-            
+
 if __name__ == '__main__':
     src_file='./logcat_join/logcat.log.all'
     dst_dir = './logcat_join/'

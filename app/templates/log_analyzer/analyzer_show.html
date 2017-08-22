@@ -27,29 +27,33 @@
 <table id="example" class="table table-striped table-hover table-bordered" cellspacing="0" width="100%">
     <thead>
         <tr>
-            <th>ftp_url</th>
-            <th>添加者</th>
-            <th>添加时间</th>
-            <th>dl ok</th>
-            <th>操作</th>
+            <th style="width: 300px">ftp_url</th>
+            <th>SN</th>
+            <th>描述</th>
+            <th>owner</th>
+            <th style="width: 140px">添加时间</th>
+            <th style="width: 150px">操作</th>
         </tr>
     </thead>
     <tbody>
     {% for post in posts %}
         <tr>
-            <td>"{{ post.ftp_url[-55:] }}"</td>
+            <td>{{ post.ftp_url[-37:] }}</td>
+            <td>{{ post.SN_id }}</td>
+            <td>{{ post.description }}</td>
             <td>{{ post.author.username }}</td>
             <td>{{ moment(post.timestamp).format('YY-M-D, h:mm:ss') }}</td>
-            <td>{{ log_status[post.id]["status"] }}</td>
             <td>
                 {% if log_status[post.id]["status"] %}
                 <a href="{{ url_for('log_analyzer.analyzer_res', id=post.id, all=1) }}"><span class="label label-primary">查看</span></a>
                 {% else %}
                 <!-- <span class="label label-default" id="poll" value="{{ log_status[post.id]['log_dir'] }}">下载进度</span> -->
                 {% endif %}
+                {% if current_user == post.author -%}
                 |<a href="{{ url_for('log_analyzer.del_ana', id=post.id) }}">
                     <span class="label label-default">Delete</span>
                 </a>
+                {% endif %}
             </td>
         </tr>
     {% endfor %}

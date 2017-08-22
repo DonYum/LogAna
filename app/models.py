@@ -278,6 +278,7 @@ class LogAnalyzer(db.Model):
     moc_id = db.Column(db.Integer)
     task_id = db.Column(db.Integer)
     tv_model = db.Column(db.String(128))
+    SN_id = db.Column(db.String(128))
     log_dir = db.Column(db.String(128))
     ftp_dl_ok = db.Column(db.Boolean, default=False)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))

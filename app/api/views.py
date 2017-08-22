@@ -133,8 +133,7 @@ def del_kw(id):
 def analyzer_show():
     form = AnalyzerForm()
     if form.validate_on_submit():
-        ftp_url=form.ftp_url.data.strip()
-
+        ftp_url=form.ftp_url.data
         if ftp_url[-1] == '/':
             ftp_url = ftp_url[0:-1]
 
@@ -254,6 +253,7 @@ def analyzer_res(id, all):
 
 
 @log_analyzer.route('/downloads/<path:filename>', methods=['GET', 'POST'])
+@login_required
 def downloads_file(filename):
     print(filename)
     # redirect(url_for('log_analyzer.analyzer_show'))

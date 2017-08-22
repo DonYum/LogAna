@@ -46,4 +46,7 @@ def create_app(config_name):
     from .log_analyzer import log_analyzer as log_analyzer_blueprint
     app.register_blueprint(log_analyzer_blueprint, url_prefix='/log_analyzer')
 
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix='/api')
+
     return app

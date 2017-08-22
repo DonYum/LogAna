@@ -63,14 +63,14 @@
             <td>
                 {% if current_user == post.author -%}
                 <a href="{{ url_for('log_analyzer.kw_show', kw_id=post.id) }}"><span class="label label-primary">Edit</span></a>
+                <a href="{{ url_for('log_analyzer.del_kw', id=post.id) }}">
+                    <span class="label label-default">Delete</span>
+                </a>
                 {%- elif current_user.is_administrator() %}
                 <a href="{{ url_for('log_analyzer.kw_show', kw_id=post.id) }}">
                     <span class="label label-danger">Edit [Admin]</span>
                 </a>
                 {% endif %}
-                <a href="{{ url_for('log_analyzer.del_kw', id=post.id) }}">
-                    <span class="label label-default">Delete</span>
-                </a>
             </td>
         </tr>
     {% endfor %}
@@ -104,14 +104,14 @@
             <td>
                 {% if current_user == post.author -%}
                 <a href="{{ url_for('log_analyzer.kw_show', bt_id=post.id) }}"><span class="label label-primary">Edit</span></a>
+                <a href="{{ url_for('log_analyzer.del_bt', id=post.id) }}">
+                    <span class="label label-default">Delete</span>
+                </a>
                 {%- elif current_user.is_administrator() %}
                 <a href="{{ url_for('log_analyzer.kw_show', bt_id=post.id) }}">
                     <span class="label label-danger">Edit [Admin]</span>
                 </a>
                 {% endif %}
-                <a href="{{ url_for('log_analyzer.del_bt', id=post.id) }}">
-                    <span class="label label-default">Delete</span>
-                </a>
             </td>
         </tr>
     {% endfor %}

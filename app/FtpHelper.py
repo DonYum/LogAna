@@ -50,6 +50,7 @@ class FtpHelper(object):
         #    /000896AC1D8B0745/594c9e1b-9de7-4f7e-8ff9-18544f932f95/'
         need_redownload_flag = False
 
+        url = url.strip()
         if url == '':
             print("url cannot be empty!")
             return False
